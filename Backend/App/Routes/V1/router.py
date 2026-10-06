@@ -1,5 +1,8 @@
 from fastapi import APIRouter
+
 from App.Routes.V1.chemical import router as chemical_router
+from App.Routes.V1.ghs import router as ghs_router
+
 
 router = APIRouter(
     prefix="/api/v1",
@@ -16,3 +19,4 @@ def api_status():
 
 
 router.include_router(chemical_router)
+router.include_router(ghs_router)

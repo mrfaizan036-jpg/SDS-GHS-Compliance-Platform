@@ -4,6 +4,7 @@ from App.Routes.health import router as health_router
 from App.Routes.V1.router import router as v1_router
 from App.Database.database import Base, engine
 from App.Models.chemical import ChemicalModel
+from App.Models.ghs import GHSClassificationModel
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI(
