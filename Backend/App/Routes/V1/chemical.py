@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
+from App.Database.database import get_db
 from App.Schemas.chemical import (
     Chemical,
     ChemicalResponse,
@@ -22,12 +24,15 @@ router = APIRouter(
 
 
 @router.post("/", response_model=ChemicalResponse)
-def create_chemical_route(chemical: Chemical):
-    chemical_id, chemical_data = create_chemical(chemical)
+def create_chemical_route(
+    chemical: Chemical,
+    db: Session = Depends(get_db),
+):
+    chemical_data = create_chemical(db, chemical)
 
     return {
         "message": "Chemical created successfully",
-        "chemical_id": chemical_id,
+        "chemical_id": str(chemical_data.id),
         "chemical": chemical_data,
     }
 
@@ -36,18 +41,21 @@ def create_chemical_route(chemical: Chemical):
     "/{chemical_id}",
     response_model=ChemicalResponse,
 )
-def get_chemical_route(chemical_id: str):
-    chemical = get_chemical(chemical_id)
+def get_chemical_route(
+    chemical_id: int,
+    db: Session = Depends(get_db),
+):
+    chemical = get_chemical(db, chemical_id)
 
     if chemical is None:
         raise HTTPException(
             status_code=404,
-            detail="Chemical not found"
+            detail="Chemical not found",
         )
 
     return {
         "message": "Chemical retrieved successfully",
-        "chemical_id": chemical_id,
+        "chemical_id": str(chemical.id),
         "chemical": chemical,
     }
 
@@ -56,12 +64,20 @@ def get_chemical_route(chemical_id: str):
     "/",
     response_model=ChemicalListResponse,
 )
-def list_chemicals_route():
-    chemicals = list_chemicals()
+def list_chemicals_route(
+    db: Session = Depends(get_db),
+):
+    chemicals = list_chemicals(db)
 
     return {
         "count": len(chemicals),
-        "chemicals": chemicals,
+        "chemicals": [
+            {
+                "chemical_id": str(chemical.id),
+                "chemical": chemical,
+            }
+            for chemical in chemicals
+        ],
     }
 
 
@@ -70,23 +86,25 @@ def list_chemicals_route():
     response_model=ChemicalResponse,
 )
 def update_chemical_route(
-    chemical_id: str,
+    chemical_id: int,
     chemical: Chemical,
+    db: Session = Depends(get_db),
 ):
-    if get_chemical(chemical_id) is None:
+    updated_chemical = update_chemical(
+        db,
+        chemical_id,
+        chemical,
+    )
+
+    if updated_chemical is None:
         raise HTTPException(
             status_code=404,
-            detail="Chemical not found"
+            detail="Chemical not found",
         )
-
-    updated_chemical = update_chemical(
-        chemical_id,
-        chemical
-    )
 
     return {
         "message": "Chemical updated successfully",
-        "chemical_id": chemical_id,
+        "chemical_id": str(updated_chemical.id),
         "chemical": updated_chemical,
     }
 
@@ -95,20 +113,30 @@ def update_chemical_route(
     "/{chemical_id}",
     response_model=ChemicalResponse,
 )
-def delete_chemical_route(chemical_id: str):
-    if get_chemical(chemical_id) is None:
+def delete_chemical_route(
+    chemical_id: int,
+    db: Session = Depends(get_db),
+):
+    deleted_chemical = delete_chemical(
+        db,
+        chemical_id,
+    )
+
+    if deleted_chemical is None:
         raise HTTPException(
             status_code=404,
-            detail="Chemical not found"
+            detail="Chemical not found",
         )
-
-    deleted_chemical = delete_chemical(chemical_id)
 
     return {
         "message": "Chemical deleted successfully",
-        "chemical_id": chemical_id,
+        "chemical_id": str(deleted_chemical.id),
         "chemical": deleted_chemical,
     }
+
+
 @router.get("/service/health")
-def chemical_service_health():
-    return service_health()
+def chemical_service_health(
+    db: Session = Depends(get_db),
+):
+    return service_health(db)

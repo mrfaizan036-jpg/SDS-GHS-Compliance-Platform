@@ -2,7 +2,10 @@ from fastapi import FastAPI
 from config import PROJECT_NAME, PROJECT_VERSION, ENVIRONMENT
 from App.Routes.health import router as health_router
 from App.Routes.V1.router import router as v1_router
+from App.Database.database import Base, engine
+from App.Models.chemical import ChemicalModel
 
+Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title=PROJECT_NAME,
     description="AI-Assisted Regulatory SDS & GHS Labeling Compliance Platform",

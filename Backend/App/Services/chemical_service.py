@@ -1,45 +1,74 @@
-from uuid import uuid4
+from sqlalchemy.orm import Session
 
+from App.Models.chemical import ChemicalModel
 from App.Schemas.chemical import Chemical
 
 
-chemicals_db = {}
+def create_chemical(db: Session, chemical: Chemical):
+    db_chemical = ChemicalModel(
+        name=chemical.name,
+        cas_number=chemical.cas_number,
+        molecular_formula=chemical.molecular_formula,
+        molecular_weight=chemical.molecular_weight,
+    )
+
+    db.add(db_chemical)
+    db.commit()
+    db.refresh(db_chemical)
+
+    return db_chemical
 
 
-def create_chemical(chemical: Chemical):
-    chemical_id = str(uuid4())
-
-    chemicals_db[chemical_id] = chemical
-
-    return chemical_id, chemical
-
-
-def get_chemical(chemical_id: str):
-    return chemicals_db.get(chemical_id)
+def get_chemical(db: Session, chemical_id: int):
+    return (
+        db.query(ChemicalModel)
+        .filter(ChemicalModel.id == chemical_id)
+        .first()
+    )
 
 
-def list_chemicals():
-    return [
-        {
-            "chemical_id": chemical_id,
-            "chemical": chemical,
-        }
-        for chemical_id, chemical in chemicals_db.items()
-    ]
+def list_chemicals(db: Session):
+    return db.query(ChemicalModel).all()
 
 
-def update_chemical(chemical_id: str, chemical: Chemical):
-    chemicals_db[chemical_id] = chemical
+def update_chemical(
+    db: Session,
+    chemical_id: int,
+    chemical: Chemical,
+):
+    db_chemical = get_chemical(db, chemical_id)
 
-    return chemical
+    if db_chemical is None:
+        return None
+
+    db_chemical.name = chemical.name
+    db_chemical.cas_number = chemical.cas_number
+    db_chemical.molecular_formula = chemical.molecular_formula
+    db_chemical.molecular_weight = chemical.molecular_weight
+
+    db.commit()
+    db.refresh(db_chemical)
+
+    return db_chemical
 
 
-def delete_chemical(chemical_id: str):
-    return chemicals_db.pop(chemical_id)
+def delete_chemical(db: Session, chemical_id: int):
+    db_chemical = get_chemical(db, chemical_id)
 
-def service_health():
+    if db_chemical is None:
+        return None
+
+    db.delete(db_chemical)
+    db.commit()
+
+    return db_chemical
+
+
+def service_health(db: Session):
+    chemical_count = db.query(ChemicalModel).count()
+
     return {
         "service": "chemical_service",
         "status": "operational",
-        "chemical_count": len(chemicals_db),
+        "chemical_count": chemical_count,
     }
