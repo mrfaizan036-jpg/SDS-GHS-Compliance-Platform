@@ -10,6 +10,12 @@ def create_chemical(db: Session, chemical: Chemical):
         cas_number=chemical.cas_number,
         molecular_formula=chemical.molecular_formula,
         molecular_weight=chemical.molecular_weight,
+        hazard_class=chemical.hazard_class,
+        hazard_category=chemical.hazard_category,
+        signal_word=chemical.signal_word,
+        pictograms=chemical.pictograms,
+        hazard_statements=chemical.hazard_statements,
+        precautionary_statements=chemical.precautionary_statements,
     )
 
     db.add(db_chemical)
@@ -45,6 +51,12 @@ def update_chemical(
     db_chemical.cas_number = chemical.cas_number
     db_chemical.molecular_formula = chemical.molecular_formula
     db_chemical.molecular_weight = chemical.molecular_weight
+    db_chemical.hazard_class = chemical.hazard_class
+    db_chemical.hazard_category = chemical.hazard_category
+    db_chemical.signal_word = chemical.signal_word
+    db_chemical.pictograms = chemical.pictograms
+    db_chemical.hazard_statements = chemical.hazard_statements
+    db_chemical.precautionary_statements = chemical.precautionary_statements
 
     db.commit()
     db.refresh(db_chemical)

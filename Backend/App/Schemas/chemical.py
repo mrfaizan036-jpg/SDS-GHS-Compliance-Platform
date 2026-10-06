@@ -24,6 +24,36 @@ class Chemical(BaseModel):
         description="Molecular weight in g/mol"
     )
 
+    hazard_class: str | None = Field(
+        default=None,
+        description="GHS hazard class"
+    )
+
+    hazard_category: str | None = Field(
+        default=None,
+        description="GHS hazard category"
+    )
+
+    signal_word: str | None = Field(
+        default=None,
+        description="GHS signal word"
+    )
+
+    pictograms: str | None = Field(
+        default=None,
+        description="GHS pictograms"
+    )
+
+    hazard_statements: str | None = Field(
+        default=None,
+        description="GHS hazard statements"
+    )
+
+    precautionary_statements: str | None = Field(
+        default=None,
+        description="GHS precautionary statements"
+    )
+
     @field_validator("name")
     @classmethod
     def validate_name(cls, value: str) -> str:
