@@ -13,11 +13,22 @@ from App.Services.ghs_service import (
     delete_ghs_classification,
 )
 
+from App.Schemas.ghs_classification import (
+    GHSClassificationRequest,
+    GHSClassificationResult,
+)
+
+from App.Services.ghs_classification_service import (
+    GHSClassificationService,
+)
+
 
 router = APIRouter(
     prefix="/ghs",
     tags=["GHS"],
 )
+
+classification_service = GHSClassificationService()
 
 
 @router.post(
@@ -39,6 +50,38 @@ def create_ghs_classification_route(
         "classification": ghs_classification,
     }
 
+@router.post(
+    "/classify",
+    response_model=GHSClassificationResult,
+)
+def classify_chemical(
+    request: GHSClassificationRequest,
+):
+    result = classification_service.classify(
+        flash_point=request.flash_point,
+        boiling_point=request.boiling_point,
+    )
+
+    if result is None:
+        return {
+            "classified": False,
+            "hazard_class": None,
+            "hazard_category": None,
+            "signal_word": None,
+            "pictograms": None,
+            "hazard_statements": None,
+            "precautionary_statements": None,
+        }
+
+    return {
+        "classified": True,
+        "hazard_class": result.hazard_class,
+        "hazard_category": result.hazard_category,
+        "signal_word": result.signal_word,
+        "pictograms": result.pictograms,
+        "hazard_statements": result.hazard_statements,
+        "precautionary_statements": result.precautionary_statements,
+    }
 
 @router.get(
     "/{classification_id}",
