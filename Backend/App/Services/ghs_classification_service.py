@@ -1,3 +1,6 @@
+from sqlalchemy.orm import Session
+
+from App.Models.chemical import ChemicalModel
 from App.Services.ghs_rule_engine import (
     GHSRuleEngine,
     GHSRuleResult,
@@ -6,7 +9,7 @@ from App.Services.ghs_rule_engine import (
 
 class GHSClassificationService:
     """
-    Service layer connecting application data
+    Service layer connecting chemical database data
     with the deterministic GHS rule engine.
     """
 
@@ -23,3 +26,24 @@ class GHSClassificationService:
             flash_point=flash_point,
             boiling_point=boiling_point,
         )
+
+    def classify_chemical(
+        self,
+        db: Session,
+        chemical_id: int,
+    ):
+        chemical = (
+            db.query(ChemicalModel)
+            .filter(ChemicalModel.id == chemical_id)
+            .first()
+        )
+
+        if chemical is None:
+            return None
+
+        result = self.classify(
+            flash_point=chemical.flash_point,
+            boiling_point=chemical.boiling_point,
+        )
+
+        return chemical, result

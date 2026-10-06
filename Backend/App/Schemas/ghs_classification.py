@@ -16,6 +16,9 @@ class GHSClassificationRequest(BaseModel):
 class GHSClassificationResult(BaseModel):
     classified: bool
 
+    chemical_id: int | None = None
+    chemical_name: str | None = None
+
     hazard_class: str | None = None
     hazard_category: str | None = None
     signal_word: str | None = None

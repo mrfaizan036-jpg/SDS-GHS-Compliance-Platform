@@ -24,6 +24,16 @@ class Chemical(BaseModel):
         description="Molecular weight in g/mol"
     )
 
+    flash_point: float | None = Field(
+        default=None,
+        description="Flash point in degrees Celsius"
+    )
+
+    boiling_point: float | None = Field(
+        default=None,
+        description="Boiling point in degrees Celsius"
+    )
+
     hazard_class: str | None = Field(
         default=None,
         description="GHS hazard class"

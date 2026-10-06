@@ -10,6 +10,8 @@ def create_chemical(db: Session, chemical: Chemical):
         cas_number=chemical.cas_number,
         molecular_formula=chemical.molecular_formula,
         molecular_weight=chemical.molecular_weight,
+        flash_point=chemical.flash_point,
+        boiling_point=chemical.boiling_point,
         hazard_class=chemical.hazard_class,
         hazard_category=chemical.hazard_category,
         signal_word=chemical.signal_word,
@@ -51,6 +53,8 @@ def update_chemical(
     db_chemical.cas_number = chemical.cas_number
     db_chemical.molecular_formula = chemical.molecular_formula
     db_chemical.molecular_weight = chemical.molecular_weight
+    db_chemical.flash_point = chemical.flash_point
+    db_chemical.boiling_point = chemical.boiling_point
     db_chemical.hazard_class = chemical.hazard_class
     db_chemical.hazard_category = chemical.hazard_category
     db_chemical.signal_word = chemical.signal_word

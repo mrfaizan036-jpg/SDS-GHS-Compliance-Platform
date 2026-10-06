@@ -83,6 +83,52 @@ def classify_chemical(
         "precautionary_statements": result.precautionary_statements,
     }
 
+@router.post(
+    "/classify/{chemical_id}",
+    response_model=GHSClassificationResult,
+)
+def classify_chemical_by_id(
+    chemical_id: int,
+    db: Session = Depends(get_db),
+):
+    result = classification_service.classify_chemical(
+        db,
+        chemical_id,
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Chemical not found",
+        )
+
+    chemical, classification = result
+
+    if classification is None:
+        return {
+            "classified": False,
+            "chemical_id": chemical.id,
+            "chemical_name": chemical.name,
+            "hazard_class": None,
+            "hazard_category": None,
+            "signal_word": None,
+            "pictograms": None,
+            "hazard_statements": None,
+            "precautionary_statements": None,
+        }
+
+    return {
+        "classified": True,
+        "chemical_id": chemical.id,
+        "chemical_name": chemical.name,
+        "hazard_class": classification.hazard_class,
+        "hazard_category": classification.hazard_category,
+        "signal_word": classification.signal_word,
+        "pictograms": classification.pictograms,
+        "hazard_statements": classification.hazard_statements,
+        "precautionary_statements": classification.precautionary_statements,
+    }
+
 @router.get(
     "/{classification_id}",
     response_model=GHSClassificationResponse,

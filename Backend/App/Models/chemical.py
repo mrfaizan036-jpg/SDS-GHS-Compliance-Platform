@@ -62,3 +62,13 @@ class ChemicalModel(Base):
         String,
         nullable=True,
     )
+    
+    flash_point = Column(
+        Float,
+        nullable=True,
+    )
+
+    boiling_point = Column(
+        Float,
+        nullable=True,
+    )
