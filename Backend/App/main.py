@@ -8,6 +8,7 @@ from App.Database.database import Base, engine
 from App.Models.chemical import ChemicalModel
 from App.Models.ghs import GHSClassificationModel
 from App.Models.regulatory import RegulatoryReferenceModel
+from App.Models.regulatory_rule import RegulatoryRuleModel
 
 from App.Services.regulatory_seed import seed_regulatory_references
 

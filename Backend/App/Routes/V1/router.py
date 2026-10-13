@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from App.Routes.V1.chemical import router as chemical_router
 from App.Routes.V1.ghs import router as ghs_router
 from App.Routes.V1.regulatory import router as regulatory_router
-
+from App.Routes.V1.regulatory_rules import router as regulatory_rules_router
 
 router = APIRouter(
     prefix="/api/v1",
@@ -22,3 +22,4 @@ def api_status():
 router.include_router(chemical_router)
 router.include_router(ghs_router)
 router.include_router(regulatory_router)
+router.include_router(regulatory_rules_router)
