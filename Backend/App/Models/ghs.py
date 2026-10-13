@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String
 
 from App.Database.database import Base
 
@@ -14,6 +14,7 @@ class GHSClassificationModel(Base):
 
     chemical_id = Column(
         Integer,
+        ForeignKey("chemicals.id"),
         nullable=False,
         index=True,
     )

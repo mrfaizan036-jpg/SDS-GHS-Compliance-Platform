@@ -11,6 +11,8 @@ from App.Services.ghs_service import (
     get_ghs_classification,
     list_ghs_classifications,
     delete_ghs_classification,
+    get_classifications_for_chemical,
+    save_generated_classification,
 )
 
 from App.Schemas.ghs_classification import (
@@ -43,6 +45,12 @@ def create_ghs_classification_route(
         db,
         classification,
     )
+
+    if ghs_classification is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Chemical not found",
+        )
 
     return {
         "message": "GHS classification created successfully",
@@ -127,6 +135,96 @@ def classify_chemical_by_id(
         "pictograms": classification.pictograms,
         "hazard_statements": classification.hazard_statements,
         "precautionary_statements": classification.precautionary_statements,
+    }
+
+@router.post(
+    "/classify/{chemical_id}/save",
+)
+def classify_and_save_chemical_route(
+    chemical_id: int,
+    db: Session = Depends(get_db),
+):
+    result = save_generated_classification(
+        db,
+        chemical_id,
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Chemical not found",
+        )
+
+    chemical = result["chemical"]
+    classification = result["classification"]
+
+    if classification is None:
+        return {
+            "message": (
+                "Chemical found, but no classification "
+                "could be generated from the available data"
+            ),
+            "saved": False,
+            "chemical_id": chemical.id,
+            "chemical_name": chemical.name,
+            "classification": None,
+        }
+
+    return {
+        "message": "GHS classification generated and saved",
+        "saved": True,
+        "chemical_id": chemical.id,
+        "chemical_name": chemical.name,
+        "classification_id": classification.id,
+        "classification": {
+            "hazard_class": classification.hazard_class,
+            "hazard_category": classification.hazard_category,
+            "signal_word": classification.signal_word,
+            "pictograms": classification.pictograms,
+            "hazard_statements": (
+                classification.hazard_statements
+            ),
+            "precautionary_statements": (
+                classification.precautionary_statements
+            ),
+        },
+    }
+
+@router.get(
+    "/chemical/{chemical_id}",
+)
+def get_chemical_classifications_route(
+    chemical_id: int,
+    db: Session = Depends(get_db),
+):
+    classifications = get_classifications_for_chemical(
+        db,
+        chemical_id,
+    )
+
+    if classifications is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Chemical not found",
+        )
+
+    return {
+        "chemical_id": chemical_id,
+        "count": len(classifications),
+        "classifications": [
+            {
+                "classification_id": item.id,
+                "hazard_class": item.hazard_class,
+                "hazard_category": item.hazard_category,
+                "signal_word": item.signal_word,
+                "pictograms": item.pictograms,
+                "hazard_statements": item.hazard_statements,
+                "precautionary_statements": (
+                    item.precautionary_statements
+                ),
+            }
+            for item in classifications
+        ],
     }
 
 @router.get(
