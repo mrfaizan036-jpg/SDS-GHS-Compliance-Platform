@@ -64,13 +64,22 @@ def create_ghs_classification_route(
 )
 def classify_chemical(
     request: GHSClassificationRequest,
+    db: Session = Depends(get_db),
 ):
-    result = classification_service.classify(
+    classification = classification_service.classify(
         flash_point=request.flash_point,
         boiling_point=request.boiling_point,
     )
 
-    if result is None:
+    traceability = (
+        classification_service.get_regulatory_traceability(
+            db=db,
+            classification=classification,
+            jurisdiction=request.jurisdiction,
+        )
+    )
+
+    if classification is None:
         return {
             "classified": False,
             "hazard_class": None,
@@ -79,16 +88,22 @@ def classify_chemical(
             "pictograms": None,
             "hazard_statements": None,
             "precautionary_statements": None,
+            "classification_status": "prototype_unverified",
+            "regulatory_traceability": traceability,
         }
 
     return {
         "classified": True,
-        "hazard_class": result.hazard_class,
-        "hazard_category": result.hazard_category,
-        "signal_word": result.signal_word,
-        "pictograms": result.pictograms,
-        "hazard_statements": result.hazard_statements,
-        "precautionary_statements": result.precautionary_statements,
+        "hazard_class": classification.hazard_class,
+        "hazard_category": classification.hazard_category,
+        "signal_word": classification.signal_word,
+        "pictograms": classification.pictograms,
+        "hazard_statements": classification.hazard_statements,
+        "precautionary_statements": (
+            classification.precautionary_statements
+        ),
+        "classification_status": "prototype_unverified",
+        "regulatory_traceability": traceability,
     }
 
 @router.post(
@@ -112,6 +127,13 @@ def classify_chemical_by_id(
 
     chemical, classification = result
 
+    traceability = (
+        classification_service.get_regulatory_traceability(
+            db=db,
+            classification=classification,
+        )
+    )
+
     if classification is None:
         return {
             "classified": False,
@@ -123,6 +145,8 @@ def classify_chemical_by_id(
             "pictograms": None,
             "hazard_statements": None,
             "precautionary_statements": None,
+            "classification_status": "prototype_unverified",
+            "regulatory_traceability": traceability,
         }
 
     return {
@@ -134,7 +158,11 @@ def classify_chemical_by_id(
         "signal_word": classification.signal_word,
         "pictograms": classification.pictograms,
         "hazard_statements": classification.hazard_statements,
-        "precautionary_statements": classification.precautionary_statements,
+        "precautionary_statements": (
+            classification.precautionary_statements
+        ),
+        "classification_status": "prototype_unverified",
+        "regulatory_traceability": traceability,
     }
 
 @router.post(
